@@ -4,6 +4,8 @@ import org.example.ws.model.Greeting;
 import org.example.ws.repository.GreetingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -13,6 +15,9 @@ import java.util.Map;
  * @author LeeSoohoon
  */
 @Service
+@Transactional(
+        propagation = Propagation.SUPPORTS,
+        readOnly = true)
 public class GreetingServiceBean implements GreetingService {
     @Autowired
     private GreetingRepository greetingRepository;
@@ -30,16 +35,26 @@ public class GreetingServiceBean implements GreetingService {
     }
 
     @Override
+    @Transactional(
+            propagation = Propagation.REQUIRED,
+            readOnly = false)
     public Greeting create(final Greeting greeting) {
         if (greeting.getId() != null) {
             // Cannot create Greeting with specified ID value
             return null;
         }
         Greeting savedGreeting = greetingRepository.save(greeting);
+        // Illustrate Tx rollback
+        if (savedGreeting.getId() == 4L) {
+            throw new RuntimeException("Roll me back!");
+        }
         return savedGreeting;
     }
 
     @Override
+    @Transactional(
+            propagation = Propagation.REQUIRED,
+            readOnly = false)
     public Greeting update(final Greeting greeting) {
         Greeting greetingPersisted = findOne(greeting.getId());
         if (greetingPersisted == null) {
@@ -51,6 +66,9 @@ public class GreetingServiceBean implements GreetingService {
     }
 
     @Override
+    @Transactional(
+            propagation = Propagation.REQUIRED,
+            readOnly = false)
     public void delete(final Long id) {
         greetingRepository.delete(id);
     }
