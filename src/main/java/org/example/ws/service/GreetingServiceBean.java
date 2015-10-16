@@ -3,6 +3,9 @@ package org.example.ws.service;
 import org.example.ws.model.Greeting;
 import org.example.ws.repository.GreetingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,6 +32,9 @@ public class GreetingServiceBean implements GreetingService {
     }
 
     @Override
+    @Cacheable(
+            value = "greetings",
+            key = "#id")
     public Greeting findOne(final Long id) {
         Greeting greeting = greetingRepository.findOne(id);
         return greeting;
@@ -38,6 +44,9 @@ public class GreetingServiceBean implements GreetingService {
     @Transactional(
             propagation = Propagation.REQUIRED,
             readOnly = false)
+    @CachePut(
+            value = "greetings",
+            key = "#result.id")
     public Greeting create(final Greeting greeting) {
         if (greeting.getId() != null) {
             // Cannot create Greeting with specified ID value
@@ -55,6 +64,9 @@ public class GreetingServiceBean implements GreetingService {
     @Transactional(
             propagation = Propagation.REQUIRED,
             readOnly = false)
+    @CachePut(
+            value = "greetings",
+            key = "#greeting.id")
     public Greeting update(final Greeting greeting) {
         Greeting greetingPersisted = findOne(greeting.getId());
         if (greetingPersisted == null) {
@@ -69,7 +81,18 @@ public class GreetingServiceBean implements GreetingService {
     @Transactional(
             propagation = Propagation.REQUIRED,
             readOnly = false)
+    @CacheEvict(
+            value = "greetings",
+            key = "#id")
     public void delete(final Long id) {
         greetingRepository.delete(id);
+    }
+
+    @Override
+    @CacheEvict(
+            value = "greetings",
+            allEntries = true)
+    public void evictCache() {
+
     }
 }
