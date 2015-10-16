@@ -5,6 +5,7 @@ import org.example.ws.service.GreetingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -13,6 +14,7 @@ import java.util.Collection;
 /**
  * @author LeeSoohoon
  */
+@Profile(value = "batch")
 @Component
 public class GreetingBatchBean {
 
@@ -21,8 +23,8 @@ public class GreetingBatchBean {
     @Autowired
     private GreetingService greetingService;
 
-//    @Scheduled(
-//            cron = "0,30 * * * * *")
+    @Scheduled(
+            cron = "${batch.greeting.cron}")
     public void cronJob() {
         logger.info("> cronJob");
 
@@ -33,9 +35,9 @@ public class GreetingBatchBean {
         logger.info("< cronJob");
     }
 
-//    @Scheduled(
-//            initialDelay = 5000,
-//            fixedRate = 15000)
+    @Scheduled(
+            initialDelayString = "${batch.greeting.initialDelay}",
+            fixedRateString = "${batch.greeting.fixedRate}")
     public void fixedRateJobWithInitialDelay() {
         logger.info("> fixedRateJobWithInitialDelay");
 
@@ -53,9 +55,9 @@ public class GreetingBatchBean {
         logger.info("< fixedRateJobWithInitialDelay");
     }
 
-//    @Scheduled(
-//            initialDelay = 5000,
-//            fixedDelay = 15000)
+    @Scheduled(
+            initialDelayString = "${batch.greeting.initialDelay}",
+            fixedDelayString = "${batch.greeting.fixedDelay}")
     public void fixedDelayJobWithInitialDelay() {
         logger.info("> fixedDelayJobWithInitialDelay");
 
