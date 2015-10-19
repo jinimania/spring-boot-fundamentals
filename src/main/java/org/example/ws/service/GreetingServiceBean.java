@@ -2,6 +2,8 @@ package org.example.ws.service;
 
 import org.example.ws.model.Greeting;
 import org.example.ws.repository.GreetingRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -14,6 +16,9 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.persistence.EntityExistsException;
+import javax.persistence.NoResultException;
+
 /**
  * @author LeeSoohoon
  */
@@ -22,6 +27,9 @@ import java.util.Map;
         propagation = Propagation.SUPPORTS,
         readOnly = true)
 public class GreetingServiceBean implements GreetingService {
+
+    private Logger logger = LoggerFactory.getLogger(this.getClass());
+
     @Autowired
     private GreetingRepository greetingRepository;
 
@@ -50,7 +58,8 @@ public class GreetingServiceBean implements GreetingService {
     public Greeting create(final Greeting greeting) {
         if (greeting.getId() != null) {
             // Cannot create Greeting with specified ID value
-            return null;
+            logger.error("Attempted to create a Greeting, but id attribute was not null");
+            throw  new EntityExistsException("The id attribute must be null to persist a new entity.");
         }
         Greeting savedGreeting = greetingRepository.save(greeting);
         // Illustrate Tx rollback
@@ -71,7 +80,8 @@ public class GreetingServiceBean implements GreetingService {
         Greeting greetingPersisted = findOne(greeting.getId());
         if (greetingPersisted == null) {
             // Cannot update Greeting that hasn't been persisted
-            return null;
+            logger.error("Attempted to update a Greeting, but the entity does not exist.");
+            throw new NoResultException("Requested entity not found.");
         }
         Greeting updatedGreeting = greetingRepository.save(greeting);
         return updatedGreeting;
@@ -93,6 +103,7 @@ public class GreetingServiceBean implements GreetingService {
             value = "greetings",
             allEntries = true)
     public void evictCache() {
-
+        logger.info("> evictCache");
+        logger.info("< evictCache");
     }
 }
